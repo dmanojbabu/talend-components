@@ -2,7 +2,7 @@
 
 checkout the project from git.
 ```sh 
-git clone https://github.com/dmanojbabu/virtusa-talend-component
+git clone https://github.com/dmanojbabu/talend-components
 ```
 
 Change the current directory to virtusa-talend-component.
