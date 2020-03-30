@@ -7,7 +7,7 @@ git clone https://github.com/dmanojbabu/virtusa-talend-component
 
 Change the current directory to virtusa-talend-component.
 ```sh
-cd virtusa-talend-component
+cd talend-components/hyper-extract-publish
 ```
 
 install the tableau dependencies in local maven repository.
@@ -24,5 +24,5 @@ gradlew clean build
 
 Deploy the component to the studio with the below command providing the studio home path and ensure Talend studio is closed before deploy.
 ```sh
-java -jar build/libs/virtusa-talend-component.car studio-deploy "TALEND_STUDIO_HOME"
+java -jar build/libs/hyper-extract-publish.car studio-deploy "TALEND_STUDIO_HOME"
 ```
