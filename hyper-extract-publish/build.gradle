@@ -1,0 +1,80 @@
+apply plugin: 'nebula.provided-base'
+apply plugin: 'org.talend.sdk.component'
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+
+tasks.withType(JavaCompile) {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+    options.compilerArgs << '-parameters'
+    options.fork = true
+}
+
+
+buildscript {
+  repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "com.netflix.nebula:gradle-extra-configurations-plugin:3.0.3"
+    classpath "org.talend.sdk.component:gradle-talend-component:1.1.19"
+  }
+}
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+}
+
+group = 'com.virtusa'
+description = 'A generated component project'
+version = '0.0.1-SNAPSHOT'
+
+
+jar {
+  baseName = 'virtusa-talend-component'
+  version = '0.0.1-SNAPSHOT'
+}
+
+test {
+  testLogging.showStandardStreams = true
+}
+
+sourceSets {
+  main {
+    java {
+    }
+  }
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  implementation fileTree(dir: 'lib', include: '*.jar')
+  provided group: 'org.talend.sdk.component', name: 'component-api', version: '1.1.19'
+  compile 'javax.ws.rs:javax.ws.rs-api:2.1'
+  compile 'org.apache.cxf:cxf-rt-rs-client:3.0.7'
+  compile 'org.apache.cxf:cxf-rt-frontend-jaxrs:3.0.7'
+  compile 'org.apache.cxf:cxf-core:3.0.7'
+  compile 'org.apache.cxf:cxf-rt-transports-http:3.0.7'
+  compile 'com.tableau:tableauhyperapi:1.0'
+  compile 'com.tableau:tableauhyperapi-windows:1.0'
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+    }
+  }
+  repositories {
+    mavenLocal()
+  }
+}
+
