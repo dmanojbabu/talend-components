@@ -1,4 +1,4 @@
-### Steps to install the Talend Tableau Hyper Output Component
+### Steps to install the Talend Hyper Extract Publish Component
 
 checkout the project from git.
 ```sh 
