@@ -57,8 +57,19 @@ repositories {
 
 dependencies {
   provided group: 'org.talend.sdk.component', name: 'component-api', version: '1.1.19'
-  compile 'com.tableau:tableauhyperapi:1.0'
-  compile 'com.tableau:tableauhyperapi-windows:1.0'
+  compile 'com.tableau:tableauhyperapi:6.0.0.10309'
+    compile 'com.sun.jna:jna:5.2.0'
+    if(project.hasProperty('buildos')){
+      if (buildos == "linux") {
+        compile 'com.tableau:tableauhyperapi-linux:6.0.0.10309'
+      }else if (buildos == "macos") {
+        compile 'com.tableau:tableauhyperapi-macos:6.0.0.10309'
+      }else if (buildos == "windows") {
+        compile 'com.tableau:tableauhyperapi-windows:6.0.0.10309'
+      }
+    }else{
+      compile 'com.tableau:tableauhyperapi-windows:6.0.0.10309'
+    }
 
 }
 

@@ -5,10 +5,16 @@ import static com.tableau.hyperapi.Nullability.NULLABLE;
 import static com.tableau.hyperapi.SqlType.*;
 import static org.talend.sdk.component.api.component.Icon.IconType.CUSTOM;
 
-import java.io.Serializable;
+import java.io.*;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -24,6 +30,7 @@ import com.tableau.hyperapi.TableName;
 import com.tableau.hyperapi.SchemaName;
 import com.tableau.hyperapi.Nullability;
 
+import com.virtusa.talend.components.service.TempDirectory;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -52,6 +59,8 @@ public class HyperOutputProcessor implements Serializable {
     private Connection connection;
     private boolean isFirstRecord;
     private TableDefinition extractTable;
+    private TempDirectory tempDirectory;
+    private static final String os = System.getProperty("os.name");
 
     public HyperOutputProcessor(@Option("configuration") final HyperOutputProcessorConfiguration configuration,
                                 final VirtusaTalendComponentService service) {
@@ -66,14 +75,17 @@ public class HyperOutputProcessor implements Serializable {
         // this is where you can establish a connection for instance
         // Note: if you don't need it you can delete it
 
+        String userHome = System.getProperty("user.home"); //TODO: Can be parameterized based on job server
+        this.tempDirectory = new TempDirectory(Paths.get(userHome).toAbsolutePath());
+        copyHyperBinaries();
+
         System.out.println("[Hyper Output Path:" + this.configuration.getOutputPath() + "]");
         System.out.println("[Schema Name:" + this.configuration.getSchemaName() + "]");
         System.out.println("[Table Name:" + this.configuration.getTableName() + "]");
-        System.out.println("[Hyper Binary Path:" + this.configuration.getHyperBinPath() + "]");
+        System.out.println("[Hyper Binary Path:" + this.tempDirectory.getPath() + "]");
         //System.out.println("[Hyper File Mode:" + this.configuration.getHyperFileMode() + "]");
 
-        this.process = new HyperProcess(Paths.get(this.configuration.getHyperBinPath()),
-                Telemetry.DO_NOT_SEND_USAGE_DATA_TO_TABLEAU);
+        this.process = new HyperProcess(this.tempDirectory.getPath(), Telemetry.DO_NOT_SEND_USAGE_DATA_TO_TABLEAU);
         this.connection = new Connection(this.process.getEndpoint(),
                 this.configuration.getOutputPath(),
                 //CreateMode.valueOf(this.configuration.getHyperFileMode().toString())
@@ -82,6 +94,70 @@ public class HyperOutputProcessor implements Serializable {
 
     }
 
+    public String[] getResourceListing(Class clazz, String path) throws URISyntaxException, IOException {
+        URL dirURL = clazz.getClassLoader().getResource(path);
+        if (dirURL != null && dirURL.getProtocol().equals("file")) {
+            /* A file path: easy enough */
+            return new File(dirURL.toURI()).list();
+        }
+
+        if (dirURL == null) {
+            String me = clazz.getName().replace(".", "/")+".class";
+            dirURL = clazz.getClassLoader().getResource(me);
+        }
+
+        if (dirURL.getProtocol().equals("jar")) {
+            /* A JAR path */
+            String jarPath = dirURL.getPath().substring(5, dirURL.getPath().indexOf("!")); //strip out only the JAR file
+            JarFile jar = new JarFile(URLDecoder.decode(jarPath, "UTF-8"));
+            Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
+            Set<String> result = new HashSet<String>(); //avoid duplicates in case it is a subdirectory
+            while(entries.hasMoreElements()) {
+                String name = entries.nextElement().getName();
+                if (name.startsWith(path)) { //filter according to the path
+                    String entry = name.substring(path.length());
+                    int checkSubdir = entry.indexOf("/");
+                    if (checkSubdir >= 0) {
+                        // if it is a subdirectory, we just return the directory name
+                        entry = entry.substring(0, checkSubdir);
+                    }
+                    System.out.println("entry:"+entry);
+                    result.add(entry);
+                }
+            }
+            return result.toArray(new String[result.size()]);
+        }
+
+        throw new UnsupportedOperationException("Cannot list files for URL "+dirURL);
+    }
+
+    private void copyHyperBinaries() {
+        String hyperLibPath = String.format("%s/%s-%s/", "tableau","hyper",getOSName());
+        System.out.println("hyperLibPath:"+hyperLibPath);
+        try {
+            String[] files =  getResourceListing(HyperOutputProcessor.class, hyperLibPath);
+            System.out.println("[files:"+Arrays.toString(files)+"]");
+            for(String file: files){
+                if(!file.trim().isEmpty()) {
+                    String srcFilePath = String.format("%s%s",hyperLibPath, file);
+                    System.out.println("[srcFilePath:" + srcFilePath+"]");
+                    InputStream inputStream = getContextClassLoader().getResourceAsStream(srcFilePath);
+                    String targetFilePath = String.format("%s/%s",tempDirectory.getPath().toString(), file);
+                    Path targetBinPath = Paths.get(targetFilePath);
+                    System.out.println("[targetBinPath:" + targetBinPath.toAbsolutePath().toString()+"]");
+                    Files.copy(inputStream, targetBinPath);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Copying hyper binaries failed: "+e);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private ClassLoader getContextClassLoader() {
+        return Thread.currentThread().getContextClassLoader();
+    }
 
     @BeforeGroup
     public void beforeGroup() {
@@ -195,6 +271,18 @@ public class HyperOutputProcessor implements Serializable {
         this.connection.close();
         System.out.println("The connection to the Hyper file has been closed");
         this.process.shutdown();
+        this.tempDirectory.delete();
         System.out.println("The Hyper process has been shut down");
+    }
+
+    private String getOSName(){
+        if(os.startsWith("Windows")){
+            return "windows";
+        }else if(os.startsWith("Linux")){
+            return  "linux";
+        }else if(os.startsWith("Mac")){
+            return "macos";
+        }
+        return null;
     }
 }
