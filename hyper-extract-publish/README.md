@@ -17,6 +17,7 @@ mvn install:install-file -Dfile=lib/tableauhyperapi.jar -DgroupId=com.tableau -D
 mvn install:install-file -Dfile=lib/tableauhyperapi-windows.jar -DgroupId=com.tableau -DartifactId=tableauhyperapi-windows -Dversion=6.0.0.10309 -Dpackaging=jar
 mvn install:install-file -Dfile=lib/tableauhyperapi-linux.jar -DgroupId=com.tableau -DartifactId=tableauhyperapi-linux -Dversion=6.0.0.10309 -Dpackaging=jar
 mvn install:install-file -Dfile=lib/tableauhyperapi-macos.jar -DgroupId=com.tableau -DartifactId=tableauhyperapi-macos -Dversion=6.0.0.10309 -Dpackaging=jar
+```
 
 Load the project in IntelliJ IDEA and build the component with the below command.
 ```sh
