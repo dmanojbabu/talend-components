@@ -13,9 +13,28 @@ cd talend-components/hyper-extract-output
 install the tableau dependencies in local maven repository.
 ```sh
 mvn install:install-file -Dfile=lib/jna-5.2.0.jar -DgroupId=com.sun.jna -DartifactId=jna -Dversion=5.2.0 -Dpackaging=jar
-mvn install:install-file -Dfile=lib/tableauhyperapi.jar -DgroupId=com.tableau -DartifactId=tableauhyperapi -Dversion=1.0 -Dpackaging=jar
-mvn install:install-file -Dfile=lib/tableauhyperapi-windows.jar -DgroupId=com.tableau -DartifactId=tableauhyperapi-windows -Dversion=1.0 -Dpackaging=jar
+mvn install:install-file -Dfile=lib/tableauhyperapi.jar -DgroupId=com.tableau -DartifactId=tableauhyperapi -Dversion=6.0.0.10309 -Dpackaging=jar
+mvn install:install-file -Dfile=lib/tableauhyperapi-windows.jar -DgroupId=com.tableau -DartifactId=tableauhyperapi-windows -Dversion=6.0.0.10309 -Dpackaging=jar
+mvn install:install-file -Dfile=lib/tableauhyperapi-linux.jar -DgroupId=com.tableau -DartifactId=tableauhyperapi-linux -Dversion=6.0.0.10309 -Dpackaging=jar
+mvn install:install-file -Dfile=lib/tableauhyperapi-macos.jar -DgroupId=com.tableau -DartifactId=tableauhyperapi-macos -Dversion=6.0.0.10309 -Dpackaging=jar
 ```
+
+Download Hyper API Dependencies - Includes Hyper API Jar and binary files
+[Hyper API Windows](https://downloads.tableau.com/tssoftware/tableauhyperapi-java-windows-x86_64-release-hyperapi_release_6.0.0.10309.rf8b2e5f7.zip){:target="_blank"}
+[Hyper API Linux](https://downloads.tableau.com/tssoftware/tableauhyperapi-java-linux-x86_64-release-hyperapi_release_6.0.0.10309.rf8b2e5f7.zip){:target="_blank"}
+[Hyper API Macos](https://downloads.tableau.com/tssoftware/tableauhyperapi-java-macos-x86_64-release-hyperapi_release_6.0.0.10309.rf8b2e5f7.zip){:target="_blank"}
+
+Copy the binary executable from the downloaded files and place in src\main\resources folder as below
+
+For Windows:
+copy hyperd.exe, hyperdstarter.exe, crashdumper.exe into below structure src/main/resources/tableau/hyper-windows/
+
+For Linux:
+copy hyperd, hyperdstarter into below structure src/main/resources/tableau/hyper-linux/
+
+For Macos:
+copy hyperd, hyperdstarter into below structure src/main/resources/tableau/hyper-macos/
+
 
 Load the project in IntelliJ IDEA and build the component with the below command.
 ```sh
