@@ -42,6 +42,12 @@ Load the project in IntelliJ IDEA and build the component with the below command
 ```sh
 gradlew clean build
 ```
+For OS Specific build add paramenter windows or linux or macos  
+Example for linux:  
+```sh
+gradlew clean build -Pbuildos=linux
+```
+
 
 Deploy the component to the studio with the below command providing the studio home path and ensure Talend studio is closed before deploy.
 ```sh
