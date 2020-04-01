@@ -20,9 +20,9 @@ mvn install:install-file -Dfile=lib/tableauhyperapi-macos.jar -DgroupId=com.tabl
 ```
 
 Download Hyper API Dependencies - Includes Hyper API Jar and binary files
-[Hyper API Windows](https://downloads.tableau.com/tssoftware/tableauhyperapi-java-windows-x86_64-release-hyperapi_release_6.0.0.10309.rf8b2e5f7.zip){:target="_blank"}
-[Hyper API Linux](https://downloads.tableau.com/tssoftware/tableauhyperapi-java-linux-x86_64-release-hyperapi_release_6.0.0.10309.rf8b2e5f7.zip){:target="_blank"}
-[Hyper API Macos](https://downloads.tableau.com/tssoftware/tableauhyperapi-java-macos-x86_64-release-hyperapi_release_6.0.0.10309.rf8b2e5f7.zip){:target="_blank"}
+[Hyper API Windows](https://downloads.tableau.com/tssoftware/tableauhyperapi-java-windows-x86_64-release-hyperapi_release_6.0.0.10309.rf8b2e5f7.zip)
+[Hyper API Linux](https://downloads.tableau.com/tssoftware/tableauhyperapi-java-linux-x86_64-release-hyperapi_release_6.0.0.10309.rf8b2e5f7.zip)
+[Hyper API Macos](https://downloads.tableau.com/tssoftware/tableauhyperapi-java-macos-x86_64-release-hyperapi_release_6.0.0.10309.rf8b2e5f7.zip)
 
 Copy the binary executable from the downloaded files and place in src\main\resources folder as below
 
