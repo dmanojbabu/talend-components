@@ -1,5 +1,6 @@
 package com.virtusa.talend.components.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -12,10 +13,23 @@ public class TempDirectory {
 
     public TempDirectory(Path inpath) {
         try {
-            path = Files.createTempDirectory(inpath, "tmphyper");
+            if(inpath.toFile().exists()){
+                //deleteDirectory(inpath.toFile());
+            }
+            path = Files.createDirectory(inpath);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    boolean deleteDirectory(File directoryToBeDeleted) {
+        File[] allContents = directoryToBeDeleted.listFiles();
+        if (allContents != null) {
+            for (File file : allContents) {
+                deleteDirectory(file);
+            }
+        }
+        return directoryToBeDeleted.delete();
     }
 
     public Path getPath() {
