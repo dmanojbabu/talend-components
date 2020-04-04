@@ -1,6 +1,7 @@
+
+
 package com.virtusa.talend.components.service;
 
-import com.virtusa.talend.components.App;
 import com.virtusa.talend.components.processor.HyperOutputProcessor;
 
 import java.io.File;
@@ -21,9 +22,13 @@ import java.util.jar.JarFile;
 
 public class ResourceExtractor {
 
-    private static final String TESTCONTAINERS_TMP_DIR_PREFIX = "testcontainers-tmp-";
-    public static final String OS_MAC_TMP_DIR = "/tmp";
+    private static final String TESTCONTAINERS_TMP_DIR_PREFIX = "testcontainers-tmp";
+    public String OS_MAC_TMP_DIR = "/tmp";
     private static final String os = System.getProperty("os.name");
+
+    public ResourceExtractor(String path){
+        this.OS_MAC_TMP_DIR = path;
+    }
 
     /**
      * Extract a file or directory tree from a JAR file to a temporary location.
@@ -57,7 +62,7 @@ public class ResourceExtractor {
         }
 
         // Mark temporary files/dirs for deletion at JVM shutdown
-        deleteOnExit(tmpLocation.toPath());
+        //deleteOnExit(tmpLocation.toPath());
 
         return tmpLocation.getAbsolutePath();
     }
@@ -77,14 +82,26 @@ public class ResourceExtractor {
     private File createTempDirectory() {
         try {
             if (isMac()) {
-                return Files.createTempDirectory(Paths.get(OS_MAC_TMP_DIR), TESTCONTAINERS_TMP_DIR_PREFIX).toFile();
+                File f1 = Files.createDirectory(Paths.get(OS_MAC_TMP_DIR)).toFile();
+                if(f1.exists()){
+                    recursiveDeleteDir(f1.toPath());
+                }
+                return f1;
             }
-            return Files.createTempDirectory(TESTCONTAINERS_TMP_DIR_PREFIX).toFile();
+            File f2 = Files.createDirectory(Paths.get(OS_MAC_TMP_DIR)).toFile();
+            if(f2.exists()){
+                recursiveDeleteDir(f2.toPath());
+            }
+            return f2;
         } catch  (IOException e) {
             byte[] array = new byte[7]; // length is bounded by 7
             new Random().nextBytes(array);
             String generatedString = new String(array, Charset.forName("UTF-8"));
-            return new File(TESTCONTAINERS_TMP_DIR_PREFIX + generatedString);
+            File f1 = new File(OS_MAC_TMP_DIR);
+            if(f1.exists()){
+                recursiveDeleteDir(f1.toPath());
+            }
+            return f1;
         }
     }
 
@@ -122,7 +139,7 @@ public class ResourceExtractor {
      *
      * @param directory path to the directory to delete.
      */
-    public static void recursiveDeleteDir(Path directory) {
+    public void recursiveDeleteDir(Path directory) {
         try {
             Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
                 @Override

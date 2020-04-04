@@ -61,6 +61,8 @@ public class HyperOutputProcessor implements Serializable {
     private TableDefinition extractTable;
     private static final String os = System.getProperty("os.name");
     private String hyperBinDir;
+    private static final String propFileName = "config.properties";
+    private ResourceExtractor resourceExtractor;
 
     public HyperOutputProcessor(@Option("configuration") final HyperOutputProcessorConfiguration configuration,
                                 final VirtusaTalendComponentService service) {
@@ -78,9 +80,9 @@ public class HyperOutputProcessor implements Serializable {
         String hyperLibPath = String.format("/%s/%s-%s/", "tableau","hyper",getOSName());
         System.out.println("hyperLibPath:"+hyperLibPath);
 
+        Properties prop = readPropertiesFile(propFileName);
 
-
-        ResourceExtractor resourceExtractor = new ResourceExtractor();
+        this.resourceExtractor = new ResourceExtractor(prop.getProperty("tmpPath"));
         Set<ClassLoader> clsSet = new HashSet<>();
         clsSet.add(HyperOutputProcessor.class.getClassLoader());
         URL hyperBin = resourceExtractor.getClasspathResource(hyperLibPath, clsSet);
@@ -105,6 +107,7 @@ public class HyperOutputProcessor implements Serializable {
         isFirstRecord = true;
 
     }
+
 
     @BeforeGroup
     public void beforeGroup() {
@@ -219,6 +222,7 @@ public class HyperOutputProcessor implements Serializable {
         System.out.println("The connection to the Hyper file has been closed");
         this.process.shutdown();
         System.out.println("The Hyper process has been shut down");
+        this.resourceExtractor.recursiveDeleteDir(Paths.get(this.hyperBinDir));
     }
 
     private String getOSName(){
@@ -230,5 +234,26 @@ public class HyperOutputProcessor implements Serializable {
             return "macos";
         }
         return null;
+    }
+
+    public Properties readPropertiesFile(String fileName) {
+        InputStream fis = null;
+        Properties prop = null;
+        try {
+            fis = getClass().getClassLoader().getResourceAsStream(fileName);
+            prop = new Properties();
+            prop.load(fis);
+        } catch(FileNotFoundException fnfe) {
+            fnfe.printStackTrace();
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        } finally {
+            try {
+                fis.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return prop;
     }
 }
