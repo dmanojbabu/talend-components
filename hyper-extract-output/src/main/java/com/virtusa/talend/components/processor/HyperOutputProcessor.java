@@ -6,15 +6,9 @@ import static com.tableau.hyperapi.SqlType.*;
 import static org.talend.sdk.component.api.component.Icon.IconType.CUSTOM;
 
 import java.io.*;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -30,7 +24,6 @@ import com.tableau.hyperapi.TableName;
 import com.tableau.hyperapi.SchemaName;
 import com.tableau.hyperapi.Nullability;
 
-import com.virtusa.talend.components.service.ResourceExtractor;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -59,10 +52,7 @@ public class HyperOutputProcessor implements Serializable {
     private Connection connection;
     private boolean isFirstRecord;
     private TableDefinition extractTable;
-    private static final String os = System.getProperty("os.name");
-    private String hyperBinDir;
     private static final String propFileName = "config.properties";
-    private ResourceExtractor resourceExtractor;
 
     public HyperOutputProcessor(@Option("configuration") final HyperOutputProcessorConfiguration configuration,
                                 final VirtusaTalendComponentService service) {
@@ -77,35 +67,25 @@ public class HyperOutputProcessor implements Serializable {
         // this is where you can establish a connection for instance
         // Note: if you don't need it you can delete it
 
-        String hyperLibPath = String.format("/%s/%s-%s/", "tableau","hyper",getOSName());
-        System.out.println("hyperLibPath:"+hyperLibPath);
-
         Properties prop = readPropertiesFile(propFileName);
+        String hyperBinPath = prop.getProperty("tmpPath");
 
-        this.resourceExtractor = new ResourceExtractor(prop.getProperty("tmpPath"));
-        Set<ClassLoader> clsSet = new HashSet<>();
-        clsSet.add(HyperOutputProcessor.class.getClassLoader());
-        URL hyperBin = resourceExtractor.getClasspathResource(hyperLibPath, clsSet);
-        System.out.println("hyperBin:"+hyperBin.toString());
-
-        this.hyperBinDir = resourceExtractor.extractClassPathResourceToTempLocation(hyperBin.toString());
 
 
         System.out.println("[Hyper Output Path:" + this.configuration.getOutputPath() + "]");
         System.out.println("[Schema Name:" + this.configuration.getSchemaName() + "]");
         System.out.println("[Table Name:" + this.configuration.getTableName() + "]");
         //System.out.println("[Hyper Binary Path:" + this.tempDirectory.getPath() + "]");
-        System.out.println("[Hyper Binary Path:" + this.hyperBinDir + "]");
+        System.out.println("[Hyper Binary Path:" + hyperBinPath + "]");
 
         //System.out.println("[Hyper File Mode:" + this.configuration.getHyperFileMode() + "]");
 
-        this.process = new HyperProcess(Paths.get(this.hyperBinDir), Telemetry.DO_NOT_SEND_USAGE_DATA_TO_TABLEAU);
+        this.process = new HyperProcess(Paths.get(hyperBinPath), Telemetry.DO_NOT_SEND_USAGE_DATA_TO_TABLEAU);
         this.connection = new Connection(this.process.getEndpoint(),
                 this.configuration.getOutputPath(),
                 //CreateMode.valueOf(this.configuration.getHyperFileMode().toString())
                 CreateMode.CREATE_AND_REPLACE);
         isFirstRecord = true;
-
     }
 
 
@@ -222,18 +202,6 @@ public class HyperOutputProcessor implements Serializable {
         System.out.println("The connection to the Hyper file has been closed");
         this.process.shutdown();
         System.out.println("The Hyper process has been shut down");
-        this.resourceExtractor.recursiveDeleteDir(Paths.get(this.hyperBinDir));
-    }
-
-    private String getOSName(){
-        if(os.startsWith("Windows")){
-            return "windows";
-        }else if(os.startsWith("Linux")){
-            return  "linux";
-        }else if(os.startsWith("Mac")){
-            return "macos";
-        }
-        return null;
     }
 
     public Properties readPropertiesFile(String fileName) {
